@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rafiq Mansion - Building Maintenance System</title>
+    
+    <!-- Excel & FontAwesome Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+    <!-- Header Section -->
+    <div class="header">
+        <h1>RAFIQ MANSION</h1>
+        <p class="address">CAMPBELL RD BURNS ROAD KARACHI</p>
+        <p class="subtitle">COMMITTEE MAINTENANCE SYSTEM</p>
+    </div>
+
+    <!-- Top Action Buttons -->
+    <div class="action-bar">
+        <button class="btn btn-whatsapp" onclick="shareWhatsApp()"><i class="fa-brands fa-whatsapp"></i> Share Report</button>
+        <button class="btn btn-pdf" onclick="window.print()"><i class="fa-solid fa-print"></i> Print / PDF</button>
+        <button class="btn btn-excel" onclick="exportToExcel()"><i class="fa-solid fa-file-excel"></i> Export Google Sheets / Excel</button>
+    </div>
+
+    <!-- Executive Summary Dashboard Cards -->
+    <div class="summary-cards">
+        <div class="card opening">
+            <h3>Opening Balance (Sabiqa Baki)</h3>
+            <div class="amount" id="displayOpeningBalance">RS 0</div>
+        </div>
+        <div class="card income">
+            <h3>Total Income (Collection + Opening)</h3>
+            <div class="amount" id="displayTotalIncome">RS 0</div>
+        </div>
+        <div class="card expense">
+            <h3>Total Expense (Kul Kharcha)</h3>
+            <div class="amount" id="displayTotalExpense">RS 0</div>
+        </div>
+        <div class="card balance">
+            <h3>Net Balance (Baqaya Rakam)</h3>
+            <div class="amount" id="displayNetBalance">RS 0</div>
+        </div>
+    </div>
+
+    <!-- Setup Section: Opening Balance, Flat Registration, Expense Setup -->
+    <div class="setup-grid">
+        <!-- Opening Balance Setup Box -->
+        <div class="setup-box">
+            <h3><i class="fa-solid fa-wallet"></i> Set Opening Balance</h3>
+            <div class="setup-inputs">
+                <input type="number" id="openingBalanceInput" placeholder="Opening Amount (RS)">
+                <button class="btn btn-save" onclick="saveOpeningBalance()"><i class="fa-solid fa-check"></i> Save</button>
+            </div>
+            <p class="status-note">Current Opening: <strong id="openingStatusText">RS 0</strong></p>
+        </div>
+
+        <!-- Register Flat & Owner -->
+        <div class="setup-box">
+            <h3><i class="fa-solid fa-building-user"></i> Register Flat & Owner</h3>
+            <div class="setup-inputs">
+                <input type="text" id="setupFlatNo" placeholder="Flat No (e.g. 101)">
+                <input type="text" id="setupOwnerName" placeholder="Owner Name (e.g. Ahmed)">
+                <button class="btn btn-save" onclick="saveRegisteredFlat()"><i class="fa-solid fa-plus"></i> Add</button>
+            </div>
+            <div class="registered-tags" id="flatTags"></div>
+        </div>
+
+        <!-- Register Expense Category -->
+        <div class="setup-box">
+            <h3><i class="fa-solid fa-tags"></i> Register Expense Category</h3>
+            <div class="setup-inputs">
+                <input type="text" id="setupExpenseCat" placeholder="Expense Name (e.g. Sweeper)">
+                <button class="btn btn-save" onclick="saveExpenseCategory()"><i class="fa-solid fa-plus"></i> Add</button>
+            </div>
+            <div class="registered-tags" id="expenseTags"></div>
+        </div>
+    </div>
+
+    <!-- Payment & Expense Entry Forms -->
+    <div class="forms-container">
+        <!-- Income Entry Form -->
+        <div class="form-box income-box">
+            <h3><i class="fa-solid fa-house-user"></i> Flat Collection Entry</h3>
+            
+            <div class="form-group">
+                <label>Select Registered Flat</label>
+                <select id="flatSelect" onchange="autoFillOwnerName()">
+                    <option value="">-- Select Flat --</option>
+                </select>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Flat No</label>
+                    <input type="text" id="flatNo" readonly style="background:#f1f5f9;">
+                </div>
+                <div class="form-group">
+                    <label>Owner / Resident Name</label>
+                    <input type="text" id="ownerName" readonly style="background:#f1f5f9;">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Maintenance Month</label>
+                    <input type="text" id="incomeDesc" placeholder="e.g. Jan 2026">
+                </div>
+                <div class="form-group">
+                    <label>Amount (RS)</label>
+                    <input type="number" id="incomeAmount" placeholder="3000">
+                </div>
+            </div>
+            <button class="btn btn-add-income" style="width:100%; margin-top:10px;" onclick="addIncome()"><i class="fa-solid fa-plus"></i> Add Payment</button>
+        </div>
+
+        <!-- Expense Entry Form -->
+        <div class="form-box expense-box">
+            <h3><i class="fa-solid fa-receipt"></i> Building Expense Entry</h3>
+            
+            <div class="form-group">
+                <label>Select Category</label>
+                <select id="expenseSelect" onchange="autoFillExpenseDesc()">
+                    <option value="">-- Select Category --</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Expense Category / Details</label>
+                <input type="text" id="expenseDesc" placeholder="e.g. Sweeper Salary, Electrician">
+            </div>
+
+            <div class="form-group">
+                <label>Amount (RS)</label>
+                <input type="number" id="expenseAmount" placeholder="1500">
+            </div>
+            <button class="btn btn-add-expense" style="width:100%; margin-top: auto;" onclick="addExpense()"><i class="fa-solid fa-plus"></i> Add Expense</button>
+        </div>
+    </div>
+
+    <!-- Google Sheet / Excel Parallel Side-by-Side View -->
+    <div class="sheet-container">
+        <div class="sheet-header">
+            <h3><i class="fa-solid fa-table-cells"></i> ACCOUNTS LEDGER - SIDE BY SIDE VIEW</h3>
+            <p>Left: Flat Collection | Right: Building Expenses</p>
+        </div>
+
+        <div class="tables-wrapper">
+            <!-- Left Side: Income Table -->
+            <div class="table-box">
+                <div class="table-title income-header">
+                    <span><i class="fa-solid fa-circle-down"></i> FLAT MAINTENANCE COLLECTION</span>
+                    <button class="btn-clear" onclick="clearAllIncome()"><i class="fa-solid fa-trash"></i> Clear All</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 15%;">Flat No</th>
+                            <th style="width: 30%;">Owner Name</th>
+                            <th style="width: 25%;">Month</th>
+                            <th style="width: 20%;">Amount</th>
+                            <th style="width: 10%;">Del</th>
+                        </tr>
+                    </thead>
+                    <tbody id="incomeTableBody"></tbody>
+                </table>
+            </div>
+
+            <!-- Right Side: Expense Table -->
+            <div class="table-box">
+                <div class="table-title expense-header">
+                    <span><i class="fa-solid fa-circle-up"></i> BUILDING EXPENSES</span>
+                    <button class="btn-clear" onclick="clearAllExpense()"><i class="fa-solid fa-trash"></i> Clear All</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 15%;">S.No</th>
+                            <th style="width: 45%;">Expense Details</th>
+                            <th style="width: 30%;">Amount</th>
+                            <th style="width: 10%;">Del</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expenseTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
